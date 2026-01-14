@@ -1,0 +1,68 @@
+{
+  "config": {
+    "model": "facebook/opt-125m",
+    "dataset": "wikitext2",
+    "methods": [
+      "vanilla",
+      "pbllm",
+      "smart"
+    ],
+    "p_values": [
+      0.5,
+      0.8
+    ],
+    "nsamples": 64,
+    "seed": 42,
+    "timestamp": "20260114_194313"
+  },
+  "results": [
+    {
+      "method": "vanilla",
+      "perplexity": 27.653175354003906,
+      "eval_time": 1.8687691688537598,
+      "salient_ratio": 1.0,
+      "model": "facebook/opt-125m",
+      "dataset": "wikitext2"
+    },
+    {
+      "method": "pbllm_magnitude",
+      "perplexity": 616.0830688476562,
+      "salient_ratio": 0.5,
+      "actual_salient_ratio": 0.5,
+      "quant_time": 0.08290600776672363,
+      "eval_time": 1.6815664768218994,
+      "model": "facebook/opt-125m",
+      "dataset": "wikitext2"
+    },
+    {
+      "method": "smart",
+      "perplexity": 1384.9600830078125,
+      "salient_ratio": 0.5,
+      "actual_salient_ratio": 0.18844865869592736,
+      "quant_time": 1.1269679069519043,
+      "eval_time": 2.2751903533935547,
+      "model": "facebook/opt-125m",
+      "dataset": "wikitext2"
+    },
+    {
+      "method": "pbllm_magnitude",
+      "perplexity": 201.7278594970703,
+      "salient_ratio": 0.8,
+      "actual_salient_ratio": 0.7999996609157987,
+      "quant_time": 0.04953646659851074,
+      "eval_time": 1.695587158203125,
+      "model": "facebook/opt-125m",
+      "dataset": "wikitext2"
+    },
+    {
+      "method": "smart",
+      "perplexity": 1009.4207153320312,
+      "salient_ratio": 0.8,
+      "actual_salient_ratio": 0.21391693162329403,
+      "quant_time": 1.120537281036377,
+      "eval_time": 2.289288282394409,
+      "model": "facebook/opt-125m",
+      "dataset": "wikitext2"
+    }
+  ]
+}

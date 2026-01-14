@@ -1,6 +1,6 @@
 # Smart Binarization: LLM Quantization Framework
 
-A comprehensive framework for developing and evaluating smart binarization strategies for large language models. This project combines GPTQ-based quantization with quantization-aware training (QAT) to achieve extreme low-bit quantization while maintaining model performance.
+This is a project where I am trying to check how far I can push this selective binarization approach. So, this is a framework for developing and evaluating smart binarization strategies for large language models. This project combines GPTQ-based quantization with quantization-aware training (QAT) to achieve extreme low-bit quantization while maintaining model performance.
 
 ## 🎯 Project Overview
 
@@ -12,38 +12,40 @@ A comprehensive framework for developing and evaluating smart binarization strat
 - ✅ **Comprehensive evaluation tools** (perplexity, memory, speed)
 - ✅ **Automated testing and reporting**
 
-## 📊 Baseline Results (OPT-125M)
+## 📊 Results (OPT-125M on WikiText-2)
 
-| Configuration | Perplexity | Memory | Speed | Status |
-|---|---|---|---|---|
-| **Vanilla** (baseline) | **28.62** | 250 MB | 396 tok/s | ✓ Reference |
-| **Smart Binarization** (80%) | 858.57 | 125 MB | ~400 tok/s | ✓ Working |
+| Method | Salient % | Perplexity | vs Vanilla |
+|--------|-----------|------------|------------|
+| **Vanilla** | 100% | **27.65** | — |
+| **Smart** (activation-aware) | 50% | **34.09** | +23% |
+| Smart | 20% | 507.87 | +1737% |
+| PB-LLM (magnitude) | 50% | 616.08 | +2128% |
+| PB-LLM (magnitude) | 20% | 1048.05 | +3690% |
 
-**Note:** High PPL at 80% binarization is expected. Performance recovery through lower `low_frac`, hessian saliency, or QAT.
+**Key Result:** Activation-aware saliency achieves **18x better** perplexity than magnitude-based at 50% salient weights.
 
 ## 🚀 Quick Start
 
-### Prerequisites
-```bash
-conda activate uzi  # Python 3.12 with all dependencies
-```
-
-### Evaluate Models
+### Smart Binarization (New)
 ```bash
 cd "/home/uzair/code/smart binarization"
 
+# Run smart binarization with 50% salient weights
+python run_smart_binarization.py facebook/opt-125m wikitext2 --p_global 0.5 --eval
+
+# Compare all methods (vanilla vs PB-LLM vs smart)
+python compare_methods.py facebook/opt-125m wikitext2 \
+    --methods vanilla pbllm smart --p_global 0.1 0.2 0.5
+```
+
+### Legacy Evaluation
+```bash
 # Vanilla model only
 python evaluate_models.py --vanilla
 
 # Generate quantized checkpoint and evaluate
 python generate_quantized_checkpoint.py --nsamples 128
 python evaluate_models.py --smart-bin
-
-# Compare both models
-python evaluate_models.py --compare
-
-# Generate comprehensive comparison report
-python final_comparison_report.py
 ```
 
 ### Run Full Quantization Pipeline
@@ -63,52 +65,8 @@ python run.py facebook/opt-125m wikitext2 2bit \
   --nsamples 128 --low_frac 0.8 --high_bit 8 --salient_metric magnitude
 ```
 
-## 📁 Project Structure
-
-```
-smart binarization/
-├── evaluate_models.py              Main evaluation framework
-├── compare_models.py               Model comparison runner
-├── final_comparison_report.py       Report generator
-├── generate_quantized_checkpoint.py Checkpoint generator
-├── download_datasets.py            Dataset pre-cacher
-├── test_suite.py                   Automated test suite
-├── requirements.txt                Python dependencies
-│
-├── gptq_pb/                        Smart Binarization implementation
-│   ├── run.py                      Main quantization script
-│   ├── gptq.py                     LowHighGPT algorithm
-│   ├── high_quant.py               High-bit quantizer
-│   ├── low_quant.py                Low-bit quantizer
-│   └── outputs/mask/               Generated masks
-│
-├── qat/                            Quantization-aware training
-│   ├── run_qat.py
-│   └── eval_after_qat.py
-│
-├── quant/                          Quantizer implementations
-│   ├── quantizer.py                Binary/STE layers
-│   └── outlier_quantizer.py        Outlier-aware quantizers
-│
-├── eval_results/                   Evaluation outputs
-│   ├── comparison_results_*.json
-│   ├── comparison_report_*.txt
-│   └── final_comparison_*.txt
-│
-└── cache/                          Local dataset cache
-```
 
 ## 🔧 Framework Architecture
-
-### Evaluation Pipeline
-```
-ModelEvaluator class:
-  ├── load_vanilla_model()           Load unquantized model
-  ├── load_smart_binarization()      Load quantized checkpoint
-  ├── evaluate_perplexity()          Measure on wikitext2/wikitext-103/c4
-  ├── evaluate_memory_usage()        GPU/CPU memory profiling
-  └── evaluate_inference_speed()     Tokens/second measurement
-```
 
 ### Supported Models
 - ✓ facebook/opt-125m (tested, fast)
@@ -132,42 +90,6 @@ ModelEvaluator class:
 - ✓ **wikitext-103-v1** (cached) - 1.8M train, thorough evaluation
 - ✓ **c4** (auto-download) - Large-scale pretraining corpus
 
-## 💡 How to Add Custom Algorithms
-
-### 1. Create Quantizer
-```python
-# quant/my_algorithm.py
-from torch import nn
-from quant.quantizer import BinaryInterface
-
-class MyQuantizer(nn.Module, BinaryInterface):
-    def __init__(self, weight, bias):
-        super().__init__()
-        self.weight = nn.Parameter(weight.data)
-        self.bias = nn.Parameter(bias.data) if bias else None
-    
-    def forward(self, x):
-        w = self.quantize_weights()  # Your quantization logic
-        return F.linear(x, w, self.bias)
-    
-    def get_save_weight_dict(self):
-        return {"weight": self.weight.data.half().cpu(), "bias": self.bias}
-```
-
-### 2. Update Evaluator
-```python
-# evaluate_models.py - add to load_vanilla_model()
-elif config['type'] == 'my_algorithm':
-    self.model = load_my_algorithm(config['checkpoint'])
-```
-
-### 3. Run Evaluation
-```bash
-python evaluate_models.py --compare
-python final_comparison_report.py
-```
-
-Results automatically save to `eval_results/` with JSON and formatted text reports.
 
 ## 📈 Performance Optimization Guide
 
@@ -278,12 +200,6 @@ python final_comparison_report.py
 - [ ] Test and compare vs baselines
 - [ ] Optimize hyperparameters
 
-### Phase 3: Scaling & Validation
-- [ ] Test on larger models (opt-1.3b, opt-6.7b)
-- [ ] Multi-method comparison (sign, 2bit, 4bit vs xnor)
-- [ ] Performance benchmarking
-- [ ] Paper preparation
-
 ## 🔍 Results & Artifacts
 
 ### Output Locations
@@ -338,11 +254,6 @@ To implement a new quantization algorithm:
   - Authors: Yuzhang Shang, Zhihang Yuan, Qiang Wu, Zhen Dong
   - Partially-Binarized LLMs via post-training quantization (GPTQ) and QAT
 
-- **GPTQ Method**: General-Purpose Quantization for Large Language Models
-- **Quantization-aware Training (QAT)**: For performance recovery
-
-## ✨ Status
-
 **Framework is complete and ready for algorithm development!**
 
 - All baseline metrics locked
@@ -353,4 +264,4 @@ To implement a new quantization algorithm:
 ---
 
 **Last Updated:** January 14, 2026  
-**Project Status:** 🟢 Ready for development
+**Project Status:** 🟢 Activation-aware saliency implemented and validated

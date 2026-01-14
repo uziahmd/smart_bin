@@ -1,8 +1,0 @@
-[
-  {
-    "status": "fail",
-    "time": 53.37391710281372,
-    "test_id": "opt-125m_wikitext2_xnor_frac0.8_magnitude",
-    "error": "4, in dataset_module_factory\n    raise RuntimeError(f\"Dataset scripts are no longer supported, but found {filename}\")\nRuntimeError: Dataset scripts are no longer supported, but found ptb_text_only.py\n"
-  }
-]
