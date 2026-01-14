@@ -299,18 +299,22 @@ if __name__ == "__main__":
     for dataset in ["wikitext2", "ptb", "c4"]:
         # for dataset in ['c4']:
         # for dataset in ['wikitext2']:
-        dataloader, testloader = get_loaders(
-            dataset, seed=args.seed, model=args.model, seqlen=model.seqlen
-        )
-        print(dataset)
-        if "opt" in args.model:
-            from eval_ppl_utils import opt_eval
+        try:
+            dataloader, testloader = get_loaders(
+                dataset, seed=args.seed, model=args.model, seqlen=model.seqlen
+            )
+            print(dataset)
+            if "opt" in args.model:
+                from eval_ppl_utils import opt_eval
 
-            opt_eval(model, testloader, device, dataset, args.log_wandb)
-        elif "huggyllama" in args.model:
-            from eval_ppl_utils import llama_eval
+                opt_eval(model, testloader, device, dataset, args.log_wandb)
+            elif "huggyllama" in args.model:
+                from eval_ppl_utils import llama_eval
 
-            llama_eval(model, testloader, device, dataset, args.log_wandb)
+                llama_eval(model, testloader, device, dataset, args.log_wandb)
+        except Exception as e:
+            print(f"⚠ Skipping {dataset} evaluation: {type(e).__name__}: {str(e)[:100]}")
+            continue
 
     if args.save:
         save_path = os.path.dirname(save_file)

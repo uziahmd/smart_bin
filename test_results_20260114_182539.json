@@ -1,0 +1,8 @@
+[
+  {
+    "status": "fail",
+    "time": 23.844468116760254,
+    "test_id": "opt-125m_wikitext2_xnor_frac0.8_magnitude",
+    "error": "^^^^^^^^^^^^^^^^^^^^\n  File \"/home/uzair/code/PB-LLM/gptq_pb/gptq.py\", line 110, in fasterquant\n    os.mkdir(\"./outputs/mask\")\nFileNotFoundError: [Errno 2] No such file or directory: './outputs/mask'\n"
+  }
+]

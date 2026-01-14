@@ -1,0 +1,22 @@
+[
+  {
+    "model_name": "facebook/opt-125m",
+    "model_type": "vanilla",
+    "timestamp": "2026-01-14T18:44:36.136647",
+    "results": {
+      "memory": {
+        "total_params": 125239296,
+        "trainable_params": 125239296,
+        "estimated_memory_gb": 0.2332763671875
+      },
+      "wikitext2": {
+        "perplexity": 28.617645263671875
+      },
+      "inference": {
+        "time_sec": 0.1265392303466797,
+        "tokens_per_sec": 395.1343774022881,
+        "num_tokens": 50
+      }
+    }
+  }
+]

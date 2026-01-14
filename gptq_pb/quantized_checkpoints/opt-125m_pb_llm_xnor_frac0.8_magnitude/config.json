@@ -1,0 +1,19 @@
+{
+  "model_name": "facebook/opt-125m",
+  "algorithm": "pb_llm_gptq",
+  "quantization_params": {
+    "method": "xnor",
+    "low_frac": 0.8,
+    "high_bit": 8,
+    "salient_metric": "magnitude"
+  },
+  "calibration": {
+    "dataset": "wikitext2",
+    "nsamples": 128
+  },
+  "results": {
+    "perplexity": 858.574402
+  },
+  "timestamp": "2026-01-14T18:50:12.543458",
+  "masks_path": "/home/uzair/code/PB-LLM/gptq_pb/outputs/mask"
+}
