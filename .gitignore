@@ -6,9 +6,6 @@ opt175b
 *.txt
 *.pt
 *egg-info*
-*.csv
-*.jpg
-*.png
 *.pdf
 *.log
 wandb
