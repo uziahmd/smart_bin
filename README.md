@@ -8,15 +8,17 @@ This is a project where I am trying to check how far I can push this selective b
 
 ## 📊 Results (OPT-125M on WikiText-2)
 
-| Method                       | Salient % | Perplexity | vs Vanilla |
-| ---------------------------- | --------- | ---------- | ---------- |
-| **Vanilla**                  | 100%      | **27.65**  | —          |
-| **Smart** (activation-aware) | 50%       | **34.09**  | +23%       |
-| Smart                        | 20%       | 507.87     | +1737%     |
-| PB-LLM (magnitude)           | 50%       | 616.08     | +2128%     |
-| PB-LLM (magnitude)           | 20%       | 1048.05    | +3690%     |
+| Method | Salient % | Perplexity | vs Vanilla |
+|--------|-----------|------------|------------|
+| **Vanilla** | 100% | **27.65** | — |
+| **Smart** (activation-aware) | 50% | **34.09** | +23% |
+| Smart | 20% | 507.87 | +1737% |
+| Magnitude | 50% | 616.08 | +2128% |
+| Magnitude | 20% | 1048.05 | +3690% |
+| Hessian | 50% | 4545.42 | +16337% |
+| Hessian | 20% | 7653.46 | +27577% |
 
-**Key Result:** Activation-aware saliency achieves **18x better** perplexity than magnitude-based at 50% salient weights.
+**Key Result:** Activation-aware saliency achieves **18x better** perplexity than magnitude-based at 50% salient.
 
 ## 🚀 Quick Start
 
@@ -28,9 +30,9 @@ cd "/home/uzair/code/smart binarization"
 # Run smart binarization with 50% salient weights
 python run_smart_binarization.py facebook/opt-125m wikitext2 --p_global 0.5 --eval
 
-# Compare all methods (vanilla vs PB-LLM vs smart)
+# Compare all 3 saliency methods
 python compare_methods.py facebook/opt-125m wikitext2 \
-    --methods vanilla pbllm smart --p_global 0.1 0.2 0.5
+    --methods vanilla magnitude hessian smart --p_global 0.2 0.5
 ```
 
 ### Legacy Evaluation

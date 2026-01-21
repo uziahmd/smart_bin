@@ -30,20 +30,20 @@ Where:
 | Method | Salient % | Perplexity | vs Vanilla |
 |--------|-----------|------------|------------|
 | Vanilla | 100% | 27.65 | — |
-| **Smart** | **50%** | **34.09** | **+23.3%** |
-| Smart | 20% | 507.87 | +1736.6% |
-| PB-LLM (magnitude) | 50% | 616.08 | +2127.9% |
-| PB-LLM (magnitude) | 20% | 1048.05 | +3690.0% |
-| Smart | 10% | 1387.90 | +4919.0% |
-| PB-LLM (magnitude) | 10% | 2287.56 | +8172.3% |
+| **Smart** | **50%** | **34.09** | **+23%** |
+| Smart | 20% | 507.87 | +1737% |
+| Magnitude | 50% | 616.08 | +2128% |
+| Magnitude | 20% | 1048.05 | +3690% |
+| Hessian | 50% | 4545.42 | +16337% |
+| Hessian | 20% | 7653.46 | +27577% |
 
-### Smart vs PB-LLM Comparison
+### Method Comparison at 50% Salient
 
-| Salient % | Smart PPL | PB-LLM PPL | Improvement |
-|-----------|-----------|------------|-------------|
-| 10% | 1387.90 | 2287.56 | **1.6x better** |
-| 20% | 507.87 | 1048.05 | **2.1x better** |
-| 50% | 34.09 | 616.08 | **18x better** |
+| Method | Perplexity | vs Smart |
+|--------|------------|----------|
+| Smart (activation-aware) | 34.09 | — |
+| Magnitude | 616.08 | 18x worse |
+| Hessian | 4545.42 | 133x worse |
 
 ---
 
@@ -69,15 +69,15 @@ python run_smart_binarization.py facebook/opt-125m wikitext2 --p_global 0.5 --ns
 - `--eval`: Evaluate perplexity after binarization
 - `--output_dir`: Output directory (default: `./outputs/smart`)
 
-### Compare Methods (Vanilla vs PB-LLM vs Smart)
+### Compare All Methods
 
 ```bash
 python compare_methods.py <model> <dataset> [options]
 
-# Example: Compare all methods at 10%, 20%, 50% salient
+# Compare magnitude, hessian, and smart saliency
 python compare_methods.py facebook/opt-125m wikitext2 \
-    --methods vanilla pbllm smart \
-    --p_global 0.1 0.2 0.5
+    --methods vanilla magnitude hessian smart \
+    --p_global 0.2 0.5
 
 # Example: Compare only smart vs pbllm at 20%
 python compare_methods.py facebook/opt-125m wikitext2 \

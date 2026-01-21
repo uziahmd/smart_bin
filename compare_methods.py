@@ -206,6 +206,150 @@ def evaluate_pbllm(
     }
 
 
+def evaluate_hessian(
+    model_name: str,
+    trainloader,
+    testenc,
+    device,
+    p_global: float = 0.2
+):
+    """
+    Evaluate Hessian-based saliency method.
+    
+    Uses S = W² / H_diag² where H_diag is approximated from input activations.
+    This is the original PB-LLM hessian approach.
+    """
+    print("\n" + "="*70)
+    print(f"EVALUATING: Hessian-based (p={p_global*100:.0f}%)")
+    print("="*70)
+    
+    # Reload fresh model
+    model = get_model(model_name)
+    model.to(device)
+    
+    skip_patterns = ['embed', 'lm_head', 'head', 'norm', 'layernorm', 'ln_']
+    
+    # Step 1: Collect H_diag (input activation statistics) per layer
+    print("Collecting Hessian diagonal approximation...")
+    
+    H_diag_dict = {}
+    hooks = []
+    
+    def make_hook(name):
+        def hook(module, inp, out):
+            if len(inp) == 0 or inp[0] is None:
+                return
+            x = inp[0].detach().float()
+            if x.dim() == 3:
+                x = x.view(-1, x.shape[-1])
+            # H_diag approximation: sum of x² per input feature
+            x_sq = (x ** 2).sum(dim=0)
+            if name not in H_diag_dict:
+                H_diag_dict[name] = {'sumsq': torch.zeros_like(x_sq), 'count': 0}
+            H_diag_dict[name]['sumsq'] += x_sq.to(H_diag_dict[name]['sumsq'].device)
+            H_diag_dict[name]['count'] += x.shape[0]
+        return hook
+    
+    # Register hooks
+    for name, module in model.named_modules():
+        if isinstance(module, nn.Linear):
+            if any(p in name.lower() for p in skip_patterns):
+                continue
+            hooks.append(module.register_forward_hook(make_hook(name)))
+    
+    # Run calibration
+    model.eval()
+    with torch.no_grad():
+        for batch in trainloader:
+            if isinstance(batch, (list, tuple)):
+                input_ids = batch[0]
+            elif isinstance(batch, dict):
+                input_ids = batch.get('input_ids', batch.get('tokens'))
+            else:
+                input_ids = batch
+            if input_ids is not None:
+                input_ids = input_ids.to(device)
+                model(input_ids)
+    
+    # Remove hooks
+    for h in hooks:
+        h.remove()
+    
+    # Compute H_diag = E[x²]
+    for name in H_diag_dict:
+        count = H_diag_dict[name]['count']
+        if count > 0:
+            H_diag_dict[name] = H_diag_dict[name]['sumsq'] / count
+        else:
+            H_diag_dict[name] = H_diag_dict[name]['sumsq']
+    
+    print(f"Collected Hessian diagonals for {len(H_diag_dict)} layers")
+    
+    # Step 2: Apply Hessian-based binarization
+    start_time = time.time()
+    
+    total_weights = 0
+    total_salient = 0
+    
+    for name, module in model.named_modules():
+        if isinstance(module, nn.Linear):
+            if any(p in name.lower() for p in skip_patterns):
+                continue
+            if name not in H_diag_dict:
+                continue
+            
+            W = module.weight.data.float()
+            H_diag = H_diag_dict[name].to(W.device)
+            
+            n_weights = W.numel()
+            k = int(n_weights * p_global)
+            
+            # Hessian-based saliency: S = W² / H_diag²
+            # Higher S means weight is more important (large W, small H_diag)
+            S = (W ** 2) / (H_diag.unsqueeze(0) ** 2 + 1e-10)
+            
+            # Get top-k mask (highest saliency = keep)
+            flat_S = S.view(-1)
+            _, top_indices = torch.topk(flat_S, k)
+            mask = torch.zeros_like(flat_S, dtype=torch.bool)
+            mask[top_indices] = True
+            mask = mask.view(W.shape)
+            
+            # Binarize non-salient weights
+            alpha = W.abs().mean(dim=0)
+            W_bin = alpha.unsqueeze(0) * torch.sign(W)
+            W_mixed = torch.where(mask, W, W_bin)
+            
+            module.weight.data = W_mixed.half()
+            
+            total_weights += n_weights
+            total_salient += k
+    
+    quant_time = time.time() - start_time
+    
+    # Evaluate
+    start_time = time.time()
+    ppl = evaluate_perplexity(model, testenc, device, model.seqlen)
+    eval_time = time.time() - start_time
+    
+    print(f"Perplexity: {ppl:.2f}")
+    print(f"Salient ratio: {total_salient/total_weights*100:.2f}%")
+    print(f"Quantization time: {quant_time:.1f}s")
+    print(f"Evaluation time: {eval_time:.1f}s")
+    
+    del model
+    torch.cuda.empty_cache()
+    
+    return {
+        'method': 'hessian',
+        'perplexity': ppl,
+        'salient_ratio': p_global,
+        'actual_salient_ratio': total_salient / total_weights,
+        'quant_time': quant_time,
+        'eval_time': eval_time,
+    }
+
+
 def evaluate_smart(
     model_name: str,
     trainloader,
@@ -348,10 +492,19 @@ def compare_methods(
     
     # Evaluate other methods at each p_value
     for p in p_values:
-        if 'pbllm' in methods:
+        if 'magnitude' in methods or 'pbllm' in methods:
             result = evaluate_pbllm(
                 model_name, trainloader, testenc, device, 
                 p_global=p, salient_metric='magnitude'
+            )
+            result['model'] = model_name
+            result['dataset'] = dataset
+            all_results.append(result)
+        
+        if 'hessian' in methods:
+            result = evaluate_hessian(
+                model_name, trainloader, testenc, device,
+                p_global=p
             )
             result['model'] = model_name
             result['dataset'] = dataset
@@ -448,9 +601,9 @@ def main():
     
     # Methods to compare
     parser.add_argument("--methods", nargs='+', 
-                       default=['vanilla', 'pbllm', 'smart'],
-                       choices=['vanilla', 'pbllm', 'smart'],
-                       help="Methods to compare")
+                       default=['vanilla', 'magnitude', 'hessian', 'smart'],
+                       choices=['vanilla', 'magnitude', 'pbllm', 'hessian', 'smart'],
+                       help="Methods to compare (magnitude=pbllm with |W|, hessian=W²/H², smart=activation-aware)")
     
     # Salient fractions
     parser.add_argument("--p_global", nargs='+', type=float,
