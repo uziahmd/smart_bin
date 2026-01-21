@@ -2,50 +2,19 @@
 
 This is a project where I am trying to check how far I can push this selective binarization approach. So, this is a framework for developing and evaluating smart binarization strategies for large language models. This project combines GPTQ-based quantization with quantization-aware training (QAT) to achieve extreme low-bit quantization while maintaining model performance.
 
-## 🎯 Project Overview
+## Results Summary
 
-**Smart Binarization** implements partially-binarized LLM quantization, where a small ratio of salient weights are preserved in higher precision while the majority are binarized to extreme compression. The framework includes:
+**Smart Binarization** implements partially-binarized LLM quantization, where a small ratio of salient weights are preserved in higher precision while the majority are binarized to extreme compression.
 
-## 📊 Results Summary
-
-### OPT-125M on WikiText-2
-
-| Method | Salient % | Perplexity | vs Vanilla |
-|--------|-----------|------------|------------|
-| **Vanilla** | 100% | **27.65** | — |
-| **Smart** (activation-aware) | 50% | **34.09** | +23% |
-| Smart | 20% | 507.87 | +1737% |
-| Magnitude | 50% | 616.08 | +2128% |
-| Hessian | 50% | 4545.42 | +16337% |
-
-### OPT-1.3B on WikiText-2
-
-| Method | Salient % | Perplexity | vs Vanilla |
-|--------|-----------|------------|------------|
-| **Vanilla** | 100% | **14.62** | — |
-| **Smart** | 50% | **15.42** | +5.4% ⭐ |
-| **Smart** | 20% | **26.84** | +83.5% |
-| Magnitude | 50% | 51.11 | +250% |
-| Magnitude | 20% | 140.05 | +858% |
-| Hessian | 50% | 23685.78 | +161,912% |
-
-### Gemma-3-1B on WikiText-2
-
-| Method | Salient % | Perplexity | vs Vanilla |
-|--------|-----------|------------|------------|
-| **Vanilla** | 100% | **13.81** | — |
-| **Smart** | 50% | **18.10** | +31% ⭐ |
-| **Smart** | 20% | **59.59** | +331% |
-| Magnitude | 50% | 1167.36 | +8353% |
-| Magnitude | 20% | 45692.42 | +330,765% |
-| Hessian | 50% | 125M | 💥 |
+![Results Comparison](results_comparison.png)
 
 **Key Results:**
-- **OPT-1.3B**: Smart binarization at 50% achieves only +5.4% degradation!
+- **OPT-1.3B**: Smart binarization at 50% achieves only **+5.4% degradation!**
 - **Gemma-3-1B**: Smart is **64× better** than magnitude at 50% salient
-- The activation-aware saliency consistently outperforms magnitude and Hessian
+- **OPT-125M**: Smart is **18× better** than magnitude at 50% salient
+- The activation-aware saliency consistently outperforms magnitude-based methods across all models
 
-## 🚀 Quick Start
+## Quick Start
 
 ### Smart Binarization (New)
 
@@ -89,14 +58,13 @@ python run.py facebook/opt-125m wikitext2 2bit \
   --nsamples 128 --low_frac 0.8 --high_bit 8 --salient_metric magnitude
 ```
 
-## 🔧 Framework Architecture
+## Framework Architecture
 
-### Supported Models
+### Tested Models
 
-* ✓ facebook/opt-125m (tested, fast)
-* ✓ facebook/opt-1.3b (ready)
-* ✓ facebook/opt-6.7b (ready)
-* ✓ google/gemma-3-1b-pt (ready)
+* ✓ facebook/opt-125m 
+* ✓ facebook/opt-1.3b
+* ✓ google/gemma-3-1b-pt 
 
 ### Quantization Methods
 
@@ -110,6 +78,8 @@ python run.py facebook/opt-125m wikitext2 2bit \
 
 * ✓ `magnitude` - Weight magnitude ranking (fast)
 * ✓ `hessian` - Hessian-based saliency (better quality, slower)
+* ✓ `activation-based` – my implementation (check out [Implemented.md](Implemented.md) for more details)
+
 
 ### Datasets
 
@@ -117,7 +87,7 @@ python run.py facebook/opt-125m wikitext2 2bit \
 * ✓ **wikitext-103-v1** (cached) - 1.8M train, thorough evaluation
 * ✓ **c4** (auto-download) - Large-scale pretraining corpus
 
-## 📈 Performance Optimization Guide
+## Performance Optimization Guide
 
 ### Improve Quality from 858 PPL
 
@@ -151,7 +121,7 @@ python run.py facebook/opt-125m wikitext2 2bit \
    * Test sign, 2bit, 4bit quantization
    * Compare results side-by-side
 
-## 🧪 Testing
+## Testing
 
 ### Quick Test (1 minute)
 
@@ -179,7 +149,7 @@ python evaluate_models.py --compare   # Compare both
 python final_comparison_report.py     # Comprehensive summary
 ```
 
-## 📚 Key Scripts Reference
+## Key Scripts Reference
 
 ### evaluate_models.py
 
@@ -261,7 +231,7 @@ To implement a new quantization algorithm:
 4. Compare against baselines
 5. Document methodology and results
 
-## 📖 References
+## References
 
 * **Original PB-LLM Paper**: [arxiv.org/abs/2310.00034](https://arxiv.org/abs/2310.00034)
 
@@ -278,4 +248,4 @@ To implement a new quantization algorithm:
 ---
 
 **Last Updated:** January 14, 2026
-**Project Status:** 🟢 Activation-aware saliency implemented and validated
+**Project Status:** Activation-aware saliency implemented and validated
