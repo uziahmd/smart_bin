@@ -1,0 +1,89 @@
+{
+  "config": {
+    "model": "facebook/opt-125m",
+    "dataset": "wikitext2",
+    "methods": [
+      "vanilla",
+      "magnitude",
+      "hessian",
+      "smart"
+    ],
+    "p_values": [
+      0.2,
+      0.5
+    ],
+    "nsamples": 128,
+    "seed": 42,
+    "timestamp": "20260121_151156"
+  },
+  "results": [
+    {
+      "method": "vanilla",
+      "perplexity": 27.653175354003906,
+      "eval_time": 1.883742094039917,
+      "salient_ratio": 1.0,
+      "model": "facebook/opt-125m",
+      "dataset": "wikitext2"
+    },
+    {
+      "method": "pbllm_magnitude",
+      "perplexity": 1048.051025390625,
+      "salient_ratio": 0.2,
+      "actual_salient_ratio": 0.1999994913736979,
+      "quant_time": 0.07783007621765137,
+      "eval_time": 1.6842586994171143,
+      "model": "facebook/opt-125m",
+      "dataset": "wikitext2"
+    },
+    {
+      "method": "hessian",
+      "perplexity": 7653.45947265625,
+      "salient_ratio": 0.2,
+      "actual_salient_ratio": 0.1999994913736979,
+      "quant_time": 0.0377802848815918,
+      "eval_time": 1.6988496780395508,
+      "model": "facebook/opt-125m",
+      "dataset": "wikitext2"
+    },
+    {
+      "method": "smart",
+      "perplexity": 507.86590576171875,
+      "salient_ratio": 0.2,
+      "actual_salient_ratio": 0.20000070407066817,
+      "quant_time": 2.1816999912261963,
+      "eval_time": 2.288468599319458,
+      "model": "facebook/opt-125m",
+      "dataset": "wikitext2"
+    },
+    {
+      "method": "pbllm_magnitude",
+      "perplexity": 616.0830688476562,
+      "salient_ratio": 0.5,
+      "actual_salient_ratio": 0.5,
+      "quant_time": 0.03878307342529297,
+      "eval_time": 1.689256191253662,
+      "model": "facebook/opt-125m",
+      "dataset": "wikitext2"
+    },
+    {
+      "method": "hessian",
+      "perplexity": 4545.41796875,
+      "salient_ratio": 0.5,
+      "actual_salient_ratio": 0.5,
+      "quant_time": 0.054477691650390625,
+      "eval_time": 1.6979095935821533,
+      "model": "facebook/opt-125m",
+      "dataset": "wikitext2"
+    },
+    {
+      "method": "smart",
+      "perplexity": 34.08808898925781,
+      "salient_ratio": 0.5,
+      "actual_salient_ratio": 0.5000006593303916,
+      "quant_time": 2.2458372116088867,
+      "eval_time": 2.32430362701416,
+      "model": "facebook/opt-125m",
+      "dataset": "wikitext2"
+    }
+  ]
+}

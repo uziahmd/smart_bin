@@ -1,0 +1,89 @@
+{
+  "config": {
+    "model": "facebook/opt-1.3b",
+    "dataset": "wikitext2",
+    "methods": [
+      "vanilla",
+      "magnitude",
+      "hessian",
+      "smart"
+    ],
+    "p_values": [
+      0.2,
+      0.5
+    ],
+    "nsamples": 64,
+    "seed": 42,
+    "timestamp": "20260121_151730"
+  },
+  "results": [
+    {
+      "method": "vanilla",
+      "perplexity": 14.623929023742676,
+      "eval_time": 12.196248292922974,
+      "salient_ratio": 1.0,
+      "model": "facebook/opt-1.3b",
+      "dataset": "wikitext2"
+    },
+    {
+      "method": "pbllm_magnitude",
+      "perplexity": 140.0489959716797,
+      "salient_ratio": 0.2,
+      "actual_salient_ratio": 0.19999992847442627,
+      "quant_time": 0.38043904304504395,
+      "eval_time": 11.768424987792969,
+      "model": "facebook/opt-1.3b",
+      "dataset": "wikitext2"
+    },
+    {
+      "method": "hessian",
+      "perplexity": 14032.166015625,
+      "salient_ratio": 0.2,
+      "actual_salient_ratio": 0.19999992847442627,
+      "quant_time": 0.35485196113586426,
+      "eval_time": 11.79375672340393,
+      "model": "facebook/opt-1.3b",
+      "dataset": "wikitext2"
+    },
+    {
+      "method": "smart",
+      "perplexity": 26.836048126220703,
+      "salient_ratio": 0.2,
+      "actual_salient_ratio": 0.2000001147389412,
+      "quant_time": 7.4840593338012695,
+      "eval_time": 20.08936381340027,
+      "model": "facebook/opt-1.3b",
+      "dataset": "wikitext2"
+    },
+    {
+      "method": "pbllm_magnitude",
+      "perplexity": 51.113059997558594,
+      "salient_ratio": 0.5,
+      "actual_salient_ratio": 0.5,
+      "quant_time": 0.5088343620300293,
+      "eval_time": 12.241576433181763,
+      "model": "facebook/opt-1.3b",
+      "dataset": "wikitext2"
+    },
+    {
+      "method": "hessian",
+      "perplexity": 22701.57421875,
+      "salient_ratio": 0.5,
+      "actual_salient_ratio": 0.5,
+      "quant_time": 0.6301405429840088,
+      "eval_time": 12.32547640800476,
+      "model": "facebook/opt-1.3b",
+      "dataset": "wikitext2"
+    },
+    {
+      "method": "smart",
+      "perplexity": 15.42032241821289,
+      "salient_ratio": 0.5,
+      "actual_salient_ratio": 0.5000001009967592,
+      "quant_time": 7.85200309753418,
+      "eval_time": 20.48412036895752,
+      "model": "facebook/opt-1.3b",
+      "dataset": "wikitext2"
+    }
+  ]
+}

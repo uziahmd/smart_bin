@@ -1,0 +1,89 @@
+{
+  "config": {
+    "model": "google/gemma-3-1b-pt",
+    "dataset": "wikitext2",
+    "methods": [
+      "vanilla",
+      "magnitude",
+      "hessian",
+      "smart"
+    ],
+    "p_values": [
+      0.2,
+      0.5
+    ],
+    "nsamples": 32,
+    "seed": 42,
+    "timestamp": "20260121_153504"
+  },
+  "results": [
+    {
+      "method": "vanilla",
+      "perplexity": 13.809966087341309,
+      "eval_time": 5.7266929149627686,
+      "salient_ratio": 1.0,
+      "model": "google/gemma-3-1b-pt",
+      "dataset": "wikitext2"
+    },
+    {
+      "method": "pbllm_magnitude",
+      "perplexity": 45692.41796875,
+      "salient_ratio": 0.2,
+      "actual_salient_ratio": 0.19999983604719934,
+      "quant_time": 0.22206902503967285,
+      "eval_time": 5.414572715759277,
+      "model": "google/gemma-3-1b-pt",
+      "dataset": "wikitext2"
+    },
+    {
+      "method": "hessian",
+      "perplexity": 438995456.0,
+      "salient_ratio": 0.2,
+      "actual_salient_ratio": 0.19999983604719934,
+      "quant_time": 0.20882034301757812,
+      "eval_time": 5.417196989059448,
+      "model": "google/gemma-3-1b-pt",
+      "dataset": "wikitext2"
+    },
+    {
+      "method": "smart",
+      "perplexity": 59.59073257446289,
+      "salient_ratio": 0.2,
+      "actual_salient_ratio": 0.20000023303081635,
+      "quant_time": 4.165979623794556,
+      "eval_time": 6.532166242599487,
+      "model": "google/gemma-3-1b-pt",
+      "dataset": "wikitext2"
+    },
+    {
+      "method": "pbllm_magnitude",
+      "perplexity": 1167.35986328125,
+      "salient_ratio": 0.5,
+      "actual_salient_ratio": 0.5,
+      "quant_time": 0.2788691520690918,
+      "eval_time": 5.614140033721924,
+      "model": "google/gemma-3-1b-pt",
+      "dataset": "wikitext2"
+    },
+    {
+      "method": "hessian",
+      "perplexity": 125381968.0,
+      "salient_ratio": 0.5,
+      "actual_salient_ratio": 0.5,
+      "quant_time": 0.349379301071167,
+      "eval_time": 5.3438427448272705,
+      "model": "google/gemma-3-1b-pt",
+      "dataset": "wikitext2"
+    },
+    {
+      "method": "smart",
+      "perplexity": 18.10329246520996,
+      "salient_ratio": 0.5,
+      "actual_salient_ratio": 0.5000001977752315,
+      "quant_time": 4.448602199554443,
+      "eval_time": 6.454463005065918,
+      "model": "google/gemma-3-1b-pt",
+      "dataset": "wikitext2"
+    }
+  ]
+}

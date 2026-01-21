@@ -31,9 +31,16 @@ import torch.nn as nn
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
 
-def get_model(model_name: str, dtype=torch.float16):
+def get_model(model_name: str, dtype=None):
     """Load model from HuggingFace."""
     print(f"Loading model: {model_name}")
+    
+    # Use bfloat16 for Gemma models (more numerically stable)
+    if dtype is None:
+        if "gemma" in model_name.lower():
+            dtype = torch.bfloat16
+        else:
+            dtype = torch.float16
     
     if "opt" in model_name.lower():
         from transformers import OPTForCausalLM
@@ -43,10 +50,16 @@ def get_model(model_name: str, dtype=torch.float16):
         from transformers import LlamaForCausalLM
         model = LlamaForCausalLM.from_pretrained(model_name, torch_dtype=dtype)
         model.seqlen = 2048
+    elif "gemma" in model_name.lower():
+        from transformers import AutoModelForCausalLM
+        model = AutoModelForCausalLM.from_pretrained(model_name, torch_dtype=dtype)
+        # Use shorter seqlen for Gemma to save memory
+        model.seqlen = min(2048, getattr(model.config, 'max_position_embeddings', 2048))
     else:
         from transformers import AutoModelForCausalLM
         model = AutoModelForCausalLM.from_pretrained(model_name, torch_dtype=dtype)
         model.seqlen = getattr(model.config, 'max_position_embeddings', 2048)
+
     
     return model
 
@@ -77,6 +90,9 @@ def evaluate_perplexity(model, testenc, device, seqlen=2048):
     testenc = testenc.input_ids if hasattr(testenc, 'input_ids') else testenc
     nsamples = testenc.shape[1] // seqlen
     
+    # Limit samples for memory-constrained models
+    nsamples = min(nsamples, 40)
+    
     nlls = []
     with torch.no_grad():
         for i in range(nsamples):
@@ -87,12 +103,31 @@ def evaluate_perplexity(model, testenc, device, seqlen=2048):
             shift_logits = logits[:, :-1, :].contiguous()
             shift_labels = batch[:, 1:].contiguous()
             
-            loss_fct = nn.CrossEntropyLoss()
-            loss = loss_fct(
-                shift_logits.view(-1, shift_logits.size(-1)),
-                shift_labels.view(-1)
-            )
+            # Process in chunks for large vocab models to avoid OOM
+            vocab_size = shift_logits.size(-1)
+            if vocab_size > 100000:
+                # Compute loss token-by-token to save memory
+                loss_fct = nn.CrossEntropyLoss(reduction='none')
+                losses = []
+                chunk_size = 256  # Process 256 tokens at a time
+                for j in range(0, shift_logits.size(1), chunk_size):
+                    end_j = min(j + chunk_size, shift_logits.size(1))
+                    chunk_logits = shift_logits[:, j:end_j, :].view(-1, vocab_size)
+                    chunk_labels = shift_labels[:, j:end_j].view(-1)
+                    chunk_loss = loss_fct(chunk_logits, chunk_labels)
+                    losses.append(chunk_loss.mean())
+                    del chunk_logits, chunk_labels, chunk_loss
+                loss = torch.stack(losses).mean()
+            else:
+                loss_fct = nn.CrossEntropyLoss()
+                loss = loss_fct(
+                    shift_logits.view(-1, shift_logits.size(-1)),
+                    shift_labels.view(-1)
+                )
+            
             nlls.append(loss.item())
+            del logits, outputs, shift_logits, shift_labels
+            torch.cuda.empty_cache()
     
     ppl = torch.exp(torch.tensor(nlls).mean()).item()
     return ppl
@@ -153,6 +188,7 @@ def evaluate_pbllm(
             if any(p in name.lower() for p in skip_patterns):
                 continue
             
+            orig_dtype = module.weight.data.dtype
             W = module.weight.data.float()
             n_weights = W.numel()
             k = int(n_weights * p_global)
@@ -176,7 +212,7 @@ def evaluate_pbllm(
             W_bin = alpha.unsqueeze(0) * torch.sign(W)
             W_mixed = torch.where(mask, W, W_bin)
             
-            module.weight.data = W_mixed.half()
+            module.weight.data = W_mixed.to(orig_dtype)
             
             total_weights += n_weights
             total_salient += k
@@ -298,6 +334,7 @@ def evaluate_hessian(
             if name not in H_diag_dict:
                 continue
             
+            orig_dtype = module.weight.data.dtype
             W = module.weight.data.float()
             H_diag = H_diag_dict[name].to(W.device)
             
@@ -320,7 +357,7 @@ def evaluate_hessian(
             W_bin = alpha.unsqueeze(0) * torch.sign(W)
             W_mixed = torch.where(mask, W, W_bin)
             
-            module.weight.data = W_mixed.half()
+            module.weight.data = W_mixed.to(orig_dtype)
             
             total_weights += n_weights
             total_salient += k

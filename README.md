@@ -6,7 +6,9 @@ This is a project where I am trying to check how far I can push this selective b
 
 **Smart Binarization** implements partially-binarized LLM quantization, where a small ratio of salient weights are preserved in higher precision while the majority are binarized to extreme compression. The framework includes:
 
-## 📊 Results (OPT-125M on WikiText-2)
+## 📊 Results Summary
+
+### OPT-125M on WikiText-2
 
 | Method | Salient % | Perplexity | vs Vanilla |
 |--------|-----------|------------|------------|
@@ -14,11 +16,34 @@ This is a project where I am trying to check how far I can push this selective b
 | **Smart** (activation-aware) | 50% | **34.09** | +23% |
 | Smart | 20% | 507.87 | +1737% |
 | Magnitude | 50% | 616.08 | +2128% |
-| Magnitude | 20% | 1048.05 | +3690% |
 | Hessian | 50% | 4545.42 | +16337% |
-| Hessian | 20% | 7653.46 | +27577% |
 
-**Key Result:** Activation-aware saliency achieves **18x better** perplexity than magnitude-based at 50% salient.
+### OPT-1.3B on WikiText-2
+
+| Method | Salient % | Perplexity | vs Vanilla |
+|--------|-----------|------------|------------|
+| **Vanilla** | 100% | **14.62** | — |
+| **Smart** | 50% | **15.42** | +5.4% ⭐ |
+| **Smart** | 20% | **26.84** | +83.5% |
+| Magnitude | 50% | 51.11 | +250% |
+| Magnitude | 20% | 140.05 | +858% |
+| Hessian | 50% | 23685.78 | +161,912% |
+
+### Gemma-3-1B on WikiText-2
+
+| Method | Salient % | Perplexity | vs Vanilla |
+|--------|-----------|------------|------------|
+| **Vanilla** | 100% | **13.81** | — |
+| **Smart** | 50% | **18.10** | +31% ⭐ |
+| **Smart** | 20% | **59.59** | +331% |
+| Magnitude | 50% | 1167.36 | +8353% |
+| Magnitude | 20% | 45692.42 | +330,765% |
+| Hessian | 50% | 125M | 💥 |
+
+**Key Results:**
+- **OPT-1.3B**: Smart binarization at 50% achieves only +5.4% degradation!
+- **Gemma-3-1B**: Smart is **64× better** than magnitude at 50% salient
+- The activation-aware saliency consistently outperforms magnitude and Hessian
 
 ## 🚀 Quick Start
 
@@ -71,7 +96,7 @@ python run.py facebook/opt-125m wikitext2 2bit \
 * ✓ facebook/opt-125m (tested, fast)
 * ✓ facebook/opt-1.3b (ready)
 * ✓ facebook/opt-6.7b (ready)
-* ✓ huggyllama/llama-7b (ready)
+* ✓ google/gemma-3-1b-pt (ready)
 
 ### Quantization Methods
 

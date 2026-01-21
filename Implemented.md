@@ -25,7 +25,9 @@ Where:
 
 ---
 
-## Results (OPT-125M on WikiText-2)
+## Results
+
+### OPT-125M on WikiText-2
 
 | Method | Salient % | Perplexity | vs Vanilla |
 |--------|-----------|------------|------------|
@@ -33,17 +35,37 @@ Where:
 | **Smart** | **50%** | **34.09** | **+23%** |
 | Smart | 20% | 507.87 | +1737% |
 | Magnitude | 50% | 616.08 | +2128% |
-| Magnitude | 20% | 1048.05 | +3690% |
 | Hessian | 50% | 4545.42 | +16337% |
-| Hessian | 20% | 7653.46 | +27577% |
 
-### Method Comparison at 50% Salient
+### OPT-1.3B on WikiText-2
 
-| Method | Perplexity | vs Smart |
-|--------|------------|----------|
-| Smart (activation-aware) | 34.09 | — |
-| Magnitude | 616.08 | 18x worse |
-| Hessian | 4545.42 | 133x worse |
+| Method | Salient % | Perplexity | vs Vanilla |
+|--------|-----------|------------|------------|
+| Vanilla | 100% | 14.62 | — |
+| **Smart** | **50%** | **15.42** | **+5.4%** ⭐ |
+| **Smart** | **20%** | **26.84** | **+83.5%** |
+| Magnitude | 50% | 51.11 | +250% |
+| Magnitude | 20% | 140.05 | +858% |
+| Hessian | 50% | 23685.78 | +161,912% |
+
+### Gemma-3-1B on WikiText-2
+
+| Method | Salient % | Perplexity | vs Vanilla |
+|--------|-----------|------------|------------|
+| Vanilla | 100% | 13.81 | — |
+| **Smart** | **50%** | **18.10** | **+31%** ⭐ |
+| **Smart** | **20%** | **59.59** | **+331%** |
+| Magnitude | 50% | 1167.36 | +8353% |
+| Magnitude | 20% | 45692.42 | +330,765% |
+| Hessian | 50% | 125M | 💥 |
+
+### Key Findings
+
+| Model | Smart 50% Improvement over Magnitude |
+|-------|--------------------------------------|
+| OPT-125M | **18× better** |
+| OPT-1.3B | **3.3× better** |
+| Gemma-3-1B | **64× better** |
 
 ---
 
